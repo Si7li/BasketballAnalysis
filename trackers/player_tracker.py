@@ -5,7 +5,7 @@ sys.path.append("../")
 from utils import read_stub,save_stub
 
 class PlayerTracker:
-    def __init__(self, model_path: str):
+    def __init__(self, model_path):
 
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()

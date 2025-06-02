@@ -1,6 +1,6 @@
 from utils import read_video, save_video
-from trackers import PlayerTracker
-from drawer import PlayerTracksDrawer
+from trackers import PlayerTracker,BallTracker
+from drawer import PlayerTracksDrawer, BallTracksDrawer
 
 def main():
     
@@ -14,13 +14,21 @@ def main():
     player_tracks = player_tracker.get_object_tracks(video_frames,
                                                      read_from_stub=True,
                                                      stub_path="stubs/player_track_stubs.pkl")
+    
+    ball_tracker = BallTracker("models/ball_detector.pt")
+    #Run Trackers
+    ball_tracks = ball_tracker.get_object_tracks(video_frames,
+                                                 read_from_stub=True,
+                                                 stub_path="stubs/ball_track_stubs.pkl")
 
     #Draw Output
     #Initialize Drawers
     player_tracks_drawer = PlayerTracksDrawer()
+    ball_tracks_drawer = BallTracksDrawer()
 
     #Draw Object Tracks
     output_video_frames = player_tracks_drawer.draw(video_frames, player_tracks)
+    output_video_frames = ball_tracks_drawer.draw(output_video_frames, ball_tracks) 
 
     #Save video frames to a new file
     save_video(output_video_frames, "output_videos/output_video.avi")

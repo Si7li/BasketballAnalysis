@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+import supervision as sv
 import sys
 sys.path.append("../")
 from utils import read_stub,save_stub
@@ -13,7 +14,7 @@ class BallTracker:
         for i in range(0, len(frame), batch_size):
             batch = frame[i:i + batch_size]
             results = self.model.predict(source=batch, conf=0.5)
-            detections.extend(results)
+            detections += results
         return detections
     
     def get_object_tracks(self, frames,read_from_stub=False ,stub_path=None):
@@ -22,3 +23,30 @@ class BallTracker:
         if tracks is not None:
             if len(tracks) == len(frames):
                 return tracks
+
+        detections = self.detect_frames(frames)
+        tracks = []
+
+        for frame_num, detection in enumerate(detections):
+            cls_names = detection.names
+            cls_names_inv = {v: k for k, v in cls_names.items()}
+
+            detection_supervision = sv.Detections.from_ultralytics(detection)
+            tracks.append({})
+            chosen_bbox = None
+            max_confidence = 0
+
+            for frame_detection in detection_supervision:
+                bbox = frame_detection[0].tolist()
+                cls_id = frame_detection[3]
+                confidence = frame_detection[2]
+
+                if cls_id == cls_names_inv["Ball"]:
+                    if confidence > max_confidence:
+                        # Choose the bbox with the highest confidence
+                        chosen_bbox = bbox
+                        max_confidence = confidence
+            if chosen_bbox is not None:
+                tracks[frame_num][1] = {"bbox": chosen_bbox}
+        save_stub(stub_path, tracks)
+        return tracks

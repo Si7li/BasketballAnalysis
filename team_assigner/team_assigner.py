@@ -12,6 +12,7 @@ class TeamAssigner:
         self.team_1_class_name = team_1_class_name
         self.team_2_class_name = team_2_class_name
 
+        self.team_colors = {}
         self.player_team_dict = {}
 
     def load_model(self):
@@ -23,7 +24,9 @@ class TeamAssigner:
 
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(rgb_image)
-        
+
+        image = pil_image
+
         classes = [self.team_1_class_name, self.team_2_class_name]
 
         inputs = self.processor(text=classes, images=image, return_tensors="pt", padding=True)
@@ -31,6 +34,7 @@ class TeamAssigner:
         outputs = self.model(**inputs)
         logits_per_image = outputs.logits_per_image # this is the image-text similarity score
         probs = logits_per_image.softmax(dim=1) # we can take the softmax to get the label probabilities
+        
         class_name = classes[probs.argmax(dim=1)[0]]
         return class_name
 
@@ -67,7 +71,7 @@ class TeamAssigner:
                 self.player_team_dict={}
 
             for player_id, track in player_track.items():
-                team = self.get_player_team(video_frames[frame_num],track["bbox"],player_id)
+                team = self.get_player_team(video_frames[frame_num],track['bbox'],player_id)
                 player_assignment[frame_num][player_id] = team
 
         save_stub(stub_path, player_assignment)

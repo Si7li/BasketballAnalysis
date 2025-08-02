@@ -16,7 +16,7 @@ class PlayerTracker:
         for i in range(0, len(frame), batch_size):
             batch = frame[i:i + batch_size]
             results = self.model.predict(source=batch, conf=0.5)
-            detections.extend(results)
+            detections+=results
         return detections
     
     def get_object_tracks(self, frames,read_from_stub=False ,stub_path=None):
